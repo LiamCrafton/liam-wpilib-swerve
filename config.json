@@ -1,0 +1,57 @@
+{
+  "SwerveModules": {
+    "frontLeft": {
+      "motor_ID_1": 1,
+      "motor_ID_2": 2,
+      "encoder_ID": 3,
+      "encoderOffset": 0.0
+    },
+    "frontRight": {
+      "motor_ID_1": 4,
+      "motor_ID_2": 5,
+      "encoder_ID": 6,
+      "encoderOffset": 0.0
+    },
+    "rearLeft": {
+      "motor_ID_1": 7,
+      "motor_ID_2": 8,
+      "encoder_ID": 9,
+      "encoderOffset": 0.0
+    },
+    "rearRight": {
+      "motor_ID_1": 10,
+      "motor_ID_2": 11,
+      "encoder_ID": 12,
+      "encoderOffset": 0.0
+    }
+  },
+  "RobotDimensions": {
+    "trackWidth": 28,
+    "wheelBase": 32,
+    "wheelDiameter": 4,
+    "maxSpeed": 3.5,
+				"maxAngularVelocity": 3.14
+  },
+  "RobotDefaultSettings": {
+    "fieldOrient": true,
+    "easterEgg": "e"
+  },
+  "driverStation": {
+    "joystickDeadZones": {
+      "xDeadZone": 0.1,
+      "yDeadZone": 0.1,
+      "zDeadZone": 0.1
+    }
+  },
+  "matchSettings": {
+    "autonomousTime": 25
+  },
+  "auxiliarySystems": {
+    "neoAuxiliary": {
+      "motorID": 13
+    },
+    "falconAuxiliary": {
+      "motorID": 14
+    }
+  }
+}
