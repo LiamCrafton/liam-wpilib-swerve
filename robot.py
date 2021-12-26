@@ -1,13 +1,25 @@
 '''
-Comments
+I'm sure you can come up with a much better implementation of full auto than I could,
+so rather than creating an auto file and creating/following trajectories in an organized
+way, I'll make a basic trajectory directly in robotInit and follow it in autonomousPeriodic.
+It's ugly but should get the method across.
+For reading about the WPILIB trajectory stuff, see:
+https://docs.wpilib.org/en/stable/docs/software/examples-tutorials/trajectory-tutorial/trajectory-tutorial-overview.html and
+https://docs.wpilib.org/en/stable/docs/software/advanced-controls/trajectories/holonomic.html
+
+It may also be good to look into adding a slew rate limiter to the joystick
+https://docs.wpilib.org/en/stable/docs/software/advanced-controls/filters/slew-rate-limiter.html
 '''
 
 import wpilib
+import wpimath
+import math
 import json
 import os
 import navx
 import driveTrain
 import driverStation
+from time import strftime, gmtime
 import autonomous
 
 class MyRobot(wpilib.TimedRobot):
@@ -22,24 +34,48 @@ class MyRobot(wpilib.TimedRobot):
 		
 		self.driveTrain = driveTrain.driveTrain(self.config)
 		self.driverStation = driverStation.driverStation(self.config)
-		
 		self.autonomousMode = "smart" # Alternatively "dumb"
+		trajectoryConfig = wpimath.trajectory.TrajectoryConfig(self.config["RobotDimensions"]["maxSpeed"], self.config["RobotDimensions"]["maxAcceleration"]) # In meters
+		trajectoryConfig.setKinematics(self.driveTrain.kinematics)
+		
+		self.trajectory = wpimath.trajectory.TrajectoryGenerator.generateTrajectory(
+			wpimath.geometry.Pose2d(0, 0, wpimath.geometry.Rotation2d.fromDegrees(0)), # Starting position
+			[wpimath.geometry.Translation2d(1,1), wpimath.geometry.Translation2d(2,-1)], # Pass through these points
+			wpimath.geometry.Pose2d(3, 0, wpimath.geometry.Rotation2d.fromDegrees(0)), # Ending position
+			trajectoryConfig)
+		
+		xController = wpilib.controller.PIDController(1, 0, 0)
+		yController = wpilib.controller.PIDController(1, 0, 0)
+		angleController = wpilib.controller.ProfiledPIDControllerRadians(1, 0, 0, wpimath.trajectory.TrapezoidProfileRadians.Constraints(math.pi, math.pi))
+		angleController.enableContinuousInput(-1*math.pi, math.pi)
+		self.swerveController = wpilib.controller.HolonomicDriveController(xController, yController, angleController)
 	
 	def autonomousInit(self):
 		''' This function is run once each time the robot enters autonomous mode.'''
 		self.driveTrain.brake()
 		if self.autonomousMode == "dumb":
-			pass # I know it's not nearly that dumb, but this is bare-bones :P
+			pass # I know it's not anywhere near that dumb, but this is bare-bones :P
 		elif self.autonomousMode == "smart":
 			autoPlanName = wpilib.SmartDashboard.getString("Auto Plan", "default")
-			# Auto implementation here
+		self.Timer = wpilib.Timer()
 	
 	def autonomousPeriodic(self):
 		''' This function is called periodically during autonomous.'''
 		if self.autonomousMode == "dumb":
 			pass # Actual recording code here
 		elif self.autonomousMode == "smart":
-			pass # Auto implementation here
+			self.driveTrain.updateOdometry()
+			if self.Timer.get() < self.config["matchSettings"]["autonomousTime"]:
+				goal = self.trajectory.sample(self.Timer.get())
+				adjustedSpeeds = self.swerveController.calculate(self.driveTrain.odometry.getPose(), goal, wpimath.geometry.Rotation2d.fromDegrees(90))
+				'''
+				I'm not totally sure how the angle/heading stuff interacts, but it would be easy to read about and test.
+				The docs say "Because the heading dynamics are decoupled from translations, users can specify a custom heading
+								that the drivetrain should point toward. This heading reference is profiled for smoothness."
+				'''
+				self.driveTrain.autoDrive(adjustedSpeeds)
+			else:
+				self.driveTrain.drive(0, 0, 0)
 	
 	def teleopInit(self):
 		'''

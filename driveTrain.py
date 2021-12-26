@@ -75,6 +75,16 @@ class driveTrain:
 		self.rearLeft.setState(swerveModuleStates[2])
 		self.rearRight.setState(swerveModuleStates[3])
 	
+	def autoDrive(self, chassisSpeeds):
+		''' This could be consolidated with drive() pretty easily.'''
+		swerveModuleStates = self.kinematics.toSwerveModuleStates(chassisSpeeds)
+		swerveModuleStates = wpimath.kinematics.SwerveDrive4Kinematics.normalizeWheelSpeeds(swerveModuleStates, self.maxSpeed)
+		
+		self.frontLeft.setState(swerveModuleStates[0])
+		self.frontRight.setState(swerveModuleStates[1])
+		self.rearLeft.setState(swerveModuleStates[2])
+		self.rearRight.setState(swerveModuleStates[3])
+	
 	def updateOdometry(self):
 		self.odometry.update(self.getPoseRadians(), self.frontLeft.getState(), self.frontRight.getState(), self.rearLeft.getState(), self.rearRight.getState())
 	

@@ -30,6 +30,7 @@
     "wheelBase": 32,
     "wheelDiameter": 4,
     "maxSpeed": 3.5,
+				"maxAcceleration": 3.5,
 				"maxAngularVelocity": 3.14
   },
   "RobotDefaultSettings": {
